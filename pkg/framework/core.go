@@ -44,7 +44,7 @@ type TriggerFunction func(ctx *Context, payload string) (string, error)
 func NewServerManager(router *net.RestApiModule, grpcServer *net.GrpcModule, dbConfig *DBConfig) *ServerManager {
 	db, err := connectDB(dbConfig)
 	if err != nil {
-		panic(fmt.Printf("failed to connect database.\n%v", err))
+		panic(fmt.Sprintf("failed to connect database.\n%v", err))
 	}
 
 	return &ServerManager{
