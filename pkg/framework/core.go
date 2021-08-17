@@ -2,12 +2,14 @@ package framework
 
 import (
 	"fmt"
+	"github.com/jinzhu/gorm"
 	"github.com/monkiato/game-server-core/pkg/framework/net"
 	"github.com/sirupsen/logrus"
 	"io/ioutil"
 	"net/http"
 )
 
+// Plugin interface must be used to create extending plugins
 type Plugin interface {
 	GetApiName() string
 	OnLoad() error
@@ -26,15 +28,39 @@ type Context struct {
 type ServerManager struct {
 	RestApiModule *net.RestApiModule
 	GrpcModule    *net.GrpcModule
+	DB *gorm.DB
+}
+
+type DBConfig struct {
+	Host string
+	Port int
+	User string
+	DBName string
+	Password string
 }
 
 type TriggerFunction func(ctx *Context, payload string) (string, error)
 
-func NewServerManager(router *net.RestApiModule, grpcServer *net.GrpcModule) *ServerManager {
+func NewServerManager(router *net.RestApiModule, grpcServer *net.GrpcModule, dbConfig *DBConfig) *ServerManager {
+	db, err := connectDB(dbConfig)
+	if err != nil {
+		panic("failed to connect database")
+	}
+
 	return &ServerManager{
 		RestApiModule: router,
 		GrpcModule:    grpcServer,
+		DB: db,
 	}
+}
+
+func connectDB(config *DBConfig) (*gorm.DB, error) {
+	return gorm.Open( "postgres", fmt.Sprintf("host=%s port=%d user=%s dbname=%s sslmode=disable password=%s",
+		config.Host,
+		config.Port,
+		config.User,
+		config.DBName,
+		config.Password))
 }
 
 func (sm ServerManager) RegisterEndpoint(plugin Plugin, methodName string, triggerFunction TriggerFunction) {
