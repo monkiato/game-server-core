@@ -7,6 +7,7 @@ import (
 	"github.com/sirupsen/logrus"
 	"io/ioutil"
 	"net/http"
+	_ "github.com/jinzhu/gorm/dialects/postgres"
 )
 
 // Plugin interface must be used to create extending plugins
